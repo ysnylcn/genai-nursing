@@ -1,0 +1,45 @@
+# Measurement Model - Nursing Students' Acceptance of GenAI
+# Theoretical Framework: Technology Acceptance Model (TAM)
+
+# ============================================================
+# First-Order Factors
+# ============================================================
+
+# Behavioral Intention
+BI =~ BI1 + BI2 + BI3 + BI4 + BI5
+
+# Perceived Usefulness
+PU =~ PU1 + PU2 + PU3 + PU4 + PU5
+
+# Perceived Ease of Use
+PEU =~ PEU1 + PEU2 + PEU3 + PEU4 + PEU5
+
+# Subjective Norms
+SN =~ SN1 + SN2 + SN3 + SN4 + SN5
+
+# Perceived Risk - First-Order Subdimensions
+PR1 =~ PR1_1 + PR1_2   # Academic Integrity Risk
+PR2 =~ PR2_1 + PR2_2   # Learning-Skill Development Risk
+PR3 =~ PR3_1 + PR3_2   # Technical/Performance Risk
+PR4 =~ PR4_1 + PR4_2   # Confidentiality/Data Security Risk
+PR5 =~ PR5_1 + PR5_2   # Social Risk
+PR6 =~ PR6_1 + PR6_2   # Financial Risk
+
+# Trust
+TR =~ TR1 + TR2 + TR3 + TR4 + TR5 + TR6 + TR7
+
+# Uncertainty Avoidance
+UA =~ UA1 + UA2 + UA3 + UA4 + UA5
+
+# Power Distance
+PD =~ PD1 + PD2 + PD3 + PD4 + PD5
+
+# Individualism vs. Collectivism
+IC =~ IC1 + IC2 + IC3 + IC4 + IC5 + IC6
+
+# ============================================================
+# Second-Order Factor
+# ============================================================
+
+# Perceived Risk (Second-Order)
+PR =~ PR1 + PR2 + PR3 + PR4 + PR5 + PR6

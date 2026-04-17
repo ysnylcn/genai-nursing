@@ -1,0 +1,90 @@
+# Structural Model v3 - Nursing Students' Acceptance of GenAI
+# Theoretical Framework: TAM + Trust-Risk + Hofstede's Cultural Dimensions
+# Based on measurement-model-v2.txt
+
+# ============================================================
+# Measurement Model (from CFA)
+# ============================================================
+
+# Behavioral Intention
+BI =~ BI1 + BI2 + BI3 + BI4 + BI5
+
+# Perceived Usefulness
+PU =~ PU1 + PU2 + PU3 + PU4 + PU5
+
+# Perceived Ease of Use
+PEU =~ PEU1 + PEU2 + PEU3 + PEU4 + PEU5
+
+# Subjective Norms
+SN =~ SN1 + SN2 + SN3 + SN5
+
+# Perceived Risk - First-Order Subdimensions
+PR1 =~ PR1_1 + PR1_2   # Academic Integrity Risk
+PR2 =~ PR2_1 + PR2_2   # Learning-Skill Development Risk
+PR3 =~ PR3_1 + PR3_2   # Technical/Performance Risk
+PR4 =~ PR4_1 + PR4_2   # Confidentiality/Data Security Risk
+PR5 =~ PR5_1 + PR5_2   # Social Risk
+PR6 =~ PR6_1 + PR6_2   # Financial Risk
+
+# Trust
+TR =~ TR1 + TR2 + TR3 + TR4 + TR5 + TR6 + TR7
+
+# Uncertainty Avoidance
+UA =~ UA1 + UA2 + UA3 + UA4 + UA5
+
+# Power Distance
+PD =~ PD1 + PD2 + PD3 + PD4 + PD5
+
+# Individualism vs. Collectivism
+IC =~ IC3 + IC4 + IC5 + IC6
+
+# ============================================================
+# Correlated Errors
+# ============================================================
+
+TR1 ~~ TR2
+
+# ============================================================
+# Second-Order Factor
+# ============================================================
+
+# Perceived Risk (Second-Order)
+PR =~ PR1 + PR2 + PR3 + PR4 + PR5 + PR6
+
+# ============================================================
+# Structural Paths
+# ============================================================
+
+# --- TAM Core (Davis, 1989; Venkatesh & Davis, 2000) ---
+# H1: Perceived Ease of Use -> Perceived Usefulness
+# H2: Perceived Usefulness  -> Behavioral Intention
+# H3: Perceived Ease of Use -> Behavioral Intention
+# H4: Subjective Norms      -> Perceived Usefulness
+# H5: Subjective Norms      -> Behavioral Intention
+PU ~ PEU + SN
+BI ~ PU + PEU + SN
+
+# --- Trust-Risk (Pavlou, 2003; Gefen et al., 2003) ---
+# H6:  Trust          -> Perceived Usefulness
+# H7:  Trust          -> Behavioral Intention
+# H8:  Perceived Risk -> Trust                 (negative)
+# H9:  Perceived Risk -> Perceived Usefulness  (negative)
+# H10: Perceived Risk -> Behavioral Intention  (negative)
+PU ~ TR + PR
+BI ~ TR + PR
+TR ~ PR
+
+# --- Hofstede's Cultural Dimensions ---
+# Uncertainty Avoidance (Hofstede, 1980; Srite & Karahanna, 2006)
+# H11: UA -> Perceived Risk  (high UA amplifies risk perceptions)
+# H12: UA -> Trust           (negative: high UA reduces trust in novel tech)
+PR ~ UA
+TR ~ UA
+
+# Power Distance (Tarhini et al., 2017; Srite & Karahanna, 2006)
+# H13: PD -> Subjective Norms (high PD increases reliance on authority)
+SN ~ PD
+
+# Individualism vs. Collectivism (Srite & Karahanna, 2006; Tarhini et al., 2017)
+# H14: IC -> Subjective Norms (collectivism strengthens social norm influence)
+SN ~ IC

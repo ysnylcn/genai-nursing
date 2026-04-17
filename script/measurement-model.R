@@ -105,7 +105,6 @@ param_estimates <- parameterEstimates(fit)
 # Faktör yükleri (=~), korelasyonlar/kovaryanslar (~~), ve regresyonları (~) al
 # Sadece gözlenen değişkenlerin rezidüel varyanslarını çıkar
 # Latent faktör varyanslarını ve diğer tüm parametreleri tut
-latent_vars <- lavNames(fit, type = "lv")
 observed_vars <- lavNames(fit, type = "ov")
 
 std_solution <- std_solution[std_solution$op %in% c("=~", "~~", "~"), ]
@@ -127,45 +126,40 @@ col_order <- c("lhs", "op", "rhs", "est.unstd", "est.std", "se", "z",
                "pvalue", "ci.lower", "ci.upper")
 std_solution <- std_solution[, col_order]
 
-# ~~ operatörü için lhs boş olanları düzelt (rhs'i lhs'e taşı)
-variance_rows <- std_solution$op == "~~" & std_solution$lhs == ""
-if (any(variance_rows)) {
-  std_solution$lhs[variance_rows] <- std_solution$rhs[variance_rows]
-  std_solution$rhs[variance_rows] <- std_solution$lhs[variance_rows]
-}
-
 # Sayısal sütunları 3 ondalık basamağa yuvarla
 numeric_cols <- c("est.unstd", "est.std", "se", "z", "pvalue", "ci.lower", "ci.upper")
 std_solution[numeric_cols] <- lapply(std_solution[numeric_cols], function(x) round(x, 3))
 
-# Faktör sırasını belirle
+# Faktör sırasını belirle (latent faktörler + gözlenen değişkenler için fallback)
 factor_order <- c("BI", "PU", "PEU", "SN", "TR", "UA", "PD", "IC",
                   "PR1", "PR2", "PR3", "PR4", "PR5", "PR6", "PR")
 
+# lhs'te görünen ama factor_order'da olmayan değerleri (örn. TR1 ~~ TR2) sona ekle
+extra_lhs <- setdiff(unique(std_solution$lhs), factor_order)
+ordered_levels <- c(factor_order, sort(extra_lhs))
+
 # lhs sütununda faktör sıralamasını uygula
-std_solution$lhs <- factor(std_solution$lhs, levels = factor_order)
+std_solution$lhs <- factor(std_solution$lhs, levels = ordered_levels)
 std_solution <- std_solution[order(std_solution$op, std_solution$lhs), ]
 std_solution$lhs <- as.character(std_solution$lhs)
 
 addWorksheet(wb, "Parameter_Estimates")
 writeData(wb, "Parameter_Estimates", std_solution)
 
-# 3. Güvenilirlik Analizi (Güncel fonksiyonlar)
-comp_rel <- compRelSEM(fit, tau.eq = FALSE)  # Omega (composite reliability)
-ave_results <- AVE(fit)  # Average Variance Extracted
-alpha_results <- compRelSEM(fit, tau.eq = TRUE)  # Cronbach's Alpha (tau-equivalent)
+# 3. Güvenilirlik Analizi
+# İkinci-dereceden PR faktörü için compRelSEM(..., higher = "PR") kullanılır.
+# Bu, alt faktörlerin ortalamasını almak yerine PR'ın ikinci-dereceden
+# yüklerine dayalı doğru Omega/Alpha hesaplar.
+comp_rel <- compRelSEM(fit, tau.eq = FALSE, higher = "PR")   # Omega
+alpha_results <- compRelSEM(fit, tau.eq = TRUE, higher = "PR") # Alpha
+ave_results <- AVE(fit)  # AVE (first-order faktörler için)
 
-# PR (second-order factor) için güvenilirlik hesapla
+# PR için AVE: semTools AVE() higher-order faktörleri desteklemez.
+# İkinci-dereceden faktör için AVE, alt faktörlerin R² ortalamasıdır
+# (= ikinci-dereceden standardize yüklerin karelerinin ortalaması).
 pr_subfactors <- c("PR1", "PR2", "PR3", "PR4", "PR5", "PR6")
 rsq_all <- inspect(fit, "r2")
-pr_rsq <- rsq_all[pr_subfactors]
-
-# PR için AVE: alt faktörlerin R-squared ortalaması
-ave_results["PR"] <- mean(pr_rsq, na.rm = TRUE)
-
-# PR için Omega ve Alpha: alt faktörlerin ortalaması
-comp_rel["PR"] <- mean(comp_rel[pr_subfactors], na.rm = TRUE)
-alpha_results["PR"] <- mean(alpha_results[pr_subfactors], na.rm = TRUE)
+ave_results["PR"] <- mean(rsq_all[pr_subfactors], na.rm = TRUE)
 
 # Güvenilirlik tablosu (Omega, Alpha, AVE)
 rel_df <- data.frame(
@@ -266,10 +260,10 @@ info_df <- data.frame(
     "Factor loading operator: Indicates measured variable is loaded by latent variable (e.g., 'BI =~ BI1' means BI1 is an indicator of BI).",
     "Variance/Covariance operator: Indicates variance (when lhs=rhs) or covariance/correlation (when lhs!=rhs) between variables.",
     "Regression operator: Indicates direct effect or regression path from rhs to lhs (e.g., 'BI ~ PU' means PU predicts BI).",
-    "PR is a second-order factor composed of first-order subfactors (PR1-PR6). Reliability metrics for PR are calculated as averages of its subfactors.",
-    "PR AVE: Average of R-squared values of subfactors (PR1-PR6). Represents the proportion of variance in subfactors explained by the second-order PR factor.",
-    "PR Omega: Average of Omega values of subfactors (PR1-PR6). Represents the composite reliability of the second-order PR factor.",
-    "PR Alpha: Average of Cronbach's Alpha values of subfactors (PR1-PR6). Represents the internal consistency of the second-order PR factor."
+    "PR is a second-order factor composed of first-order subfactors (PR1-PR6). Omega and Alpha are computed via semTools::compRelSEM(..., higher = 'PR'); AVE is computed as the mean R-squared of the subfactors since semTools::AVE does not support higher-order factors.",
+    "PR AVE: Mean of R-squared values of subfactors (PR1-PR6), equivalent to the average squared second-order loading. Represents the proportion of variance in subfactors explained by the second-order PR factor.",
+    "PR Omega: Higher-order composite reliability from compRelSEM(fit, higher = 'PR', tau.eq = FALSE). Based on the second-order loadings of PR1-PR6 on PR.",
+    "PR Alpha: Higher-order tau-equivalent reliability from compRelSEM(fit, higher = 'PR', tau.eq = TRUE). Based on the second-order loadings of PR1-PR6 on PR."
   )
 )
 

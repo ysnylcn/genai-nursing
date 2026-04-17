@@ -140,11 +140,15 @@ path_coef$Hypothesis[path_coef$lhs == "BI" & path_coef$rhs == "SN"]  <- "H3"
 path_coef$Hypothesis[path_coef$lhs == "PU" & path_coef$rhs == "PEU"] <- "H4"
 path_coef$Hypothesis[path_coef$lhs == "PU" & path_coef$rhs == "SN"]  <- "H5"
 path_coef$Hypothesis[path_coef$lhs == "BI" & path_coef$rhs == "TR"]  <- "H6"
-path_coef$Hypothesis[path_coef$lhs == "PR" & path_coef$rhs == "TR"]  <- "H7"
-path_coef$Hypothesis[path_coef$lhs == "PU" & path_coef$rhs == "PR"]  <- "H8"
-path_coef$Hypothesis[path_coef$lhs == "PR" & path_coef$rhs == "UA"]  <- "H9"
-path_coef$Hypothesis[path_coef$lhs == "PU" & path_coef$rhs == "PD"]  <- "H10"
-path_coef$Hypothesis[path_coef$lhs == "SN" & path_coef$rhs == "IC"]  <- "H11"
+path_coef$Hypothesis[path_coef$lhs == "PU" & path_coef$rhs == "TR"]  <- "H7"
+path_coef$Hypothesis[path_coef$lhs == "BI" & path_coef$rhs == "PR"]  <- "H8"
+path_coef$Hypothesis[path_coef$lhs == "PU" & path_coef$rhs == "PR"]  <- "H9"
+path_coef$Hypothesis[path_coef$lhs == "TR" & path_coef$rhs == "PR"]  <- "H10"
+path_coef$Hypothesis[path_coef$lhs == "PR" & path_coef$rhs == "UA"]  <- "H11"
+path_coef$Hypothesis[path_coef$lhs == "TR" & path_coef$rhs == "UA"]  <- "H12"
+path_coef$Hypothesis[path_coef$lhs == "PU" & path_coef$rhs == "PD"]  <- "H13"
+path_coef$Hypothesis[path_coef$lhs == "SN" & path_coef$rhs == "PD"]  <- "H14"
+path_coef$Hypothesis[path_coef$lhs == "SN" & path_coef$rhs == "IC"]  <- "H15"
 
 # Significance sütunu ekle
 path_coef$Significance <- ifelse(path_coef$pvalue < 0.001, "***",
@@ -168,7 +172,7 @@ rsq_all <- data.frame(
 )
 
 # Anahtar endojen yapılar için ayrı özet tablo
-key_constructs <- c("BI", "PU", "SN", "PR")
+key_constructs <- c("BI", "PU", "SN", "PR", "TR")
 rsq_key <- rsq[key_constructs]
 rsq_key_df <- data.frame(
   Construct = names(rsq_key),
@@ -198,13 +202,14 @@ if (nrow(mod_ind) > 0) {
 
 # 6. Hipotez Özet Tablosu
 hyp_summary <- data.frame(
-  Hypothesis = paste0("H", 1:11),
+  Hypothesis = paste0("H", 1:15),
   Path = c("PU -> BI", "PEU -> BI", "SN -> BI",
            "PEU -> PU", "SN -> PU",
-           "TR -> BI", "TR -> PR",
-           "PR -> PU", "UA -> PR",
-           "PD -> PU", "IC -> SN"),
-  Theory = c(rep("TAM", 5), rep("Trust-Risk", 3), rep("Hofstede", 3))
+           "TR -> BI", "TR -> PU",
+           "PR -> BI", "PR -> PU", "PR -> TR",
+           "UA -> PR", "UA -> TR",
+           "PD -> PU", "PD -> SN", "IC -> SN"),
+  Theory = c(rep("TAM", 5), rep("Trust-Risk", 5), rep("Hofstede", 5))
 )
 
 # Path coefficients'tan beta ve p değerlerini eşleştir
@@ -216,12 +221,13 @@ hyp_summary$Significance <- NA
 paths <- list(
   c("BI", "PU"), c("BI", "PEU"), c("BI", "SN"),
   c("PU", "PEU"), c("PU", "SN"),
-  c("BI", "TR"), c("PR", "TR"),
-  c("PU", "PR"), c("PR", "UA"),
-  c("PU", "PD"), c("SN", "IC")
+  c("BI", "TR"), c("PU", "TR"),
+  c("BI", "PR"), c("PU", "PR"), c("TR", "PR"),
+  c("PR", "UA"), c("TR", "UA"),
+  c("PU", "PD"), c("SN", "PD"), c("SN", "IC")
 )
 
-for (i in 1:11) {
+for (i in 1:15) {
   row <- path_lookup[path_lookup$lhs == paths[[i]][1] & path_lookup$rhs == paths[[i]][2], ]
   if (nrow(row) > 0) {
     hyp_summary$Beta[i] <- round(row$est.std, 3)
